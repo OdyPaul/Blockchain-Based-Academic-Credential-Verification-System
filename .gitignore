@@ -1,0 +1,6 @@
+# Ignore all node_modules folders in the project
+**/node_modules/
+
+# Optional: ignore build artifacts
+dist/
+build/
