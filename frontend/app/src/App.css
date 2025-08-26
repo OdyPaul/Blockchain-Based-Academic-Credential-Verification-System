@@ -3,10 +3,16 @@ html, body, #root, .App {
   margin: 0;
   padding: 0;
 }
-
 .App {
   display: flex;
+  flex-direction: row;
 }
-.c-sidebar {
-  height: 100%;
+
+
+.navbar {
+  position: sticky;   /* sticks when scrolling */
+  top: 0;             /* stick to top edge */
+  width: 100%;        /* full width */
+  z-index: 1000; 
+  height: 60px;     /* stays above sidebar */
 }
