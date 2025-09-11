@@ -1,23 +1,11 @@
 "use client"
 
-import React, { useEffect } from "react"
+import React from "react"
 import CIcon from "@coreui/icons-react"
-import { cilBell, cilSettings } from "@coreui/icons"
-
-// Import Popover directly
-import { Popover } from "bootstrap"
+import { cilBell, cilSettings,cilUser  } from "@coreui/icons"
+import './css/navbar.css'; 
 
 const Navbar = () => {
-  useEffect(() => {
-    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
-    popoverTriggerList.forEach((el) => {
-      new Popover(el, {
-        trigger: "focus",
-        html: true,
-      })
-    })
-  }, [])
-
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm sticky-top">
       <div className="container-fluid ms-5">
@@ -29,49 +17,65 @@ const Navbar = () => {
           </button>
         </form>
 
-        {/* Mobile Toggle */}
-        <button
-          className="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarContent"
-          aria-controls="navbarContent"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span className="navbar-toggler-icon"></span>
-        </button>
 
 
         {/* Right Side */}
         <div className="collapse navbar-collapse" id="navbarContent">
           <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
-            {/* Bell Icon */}
-            <li className="nav-item mx-2">
+            <li className="nav-item dropdown mx-2">
+      <button
+        className="btn btn-light border-0 dropdown-toggle"
+        id="userDropdown"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        <CIcon icon={cilUser} size="lg" />
+      </button>
+<ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+  {/* User Role/Name Placeholder */}
+  <li className="dropdown-item fw-bold text-primary">👨‍💼 Admin</li>
+  <li><hr className="dropdown-divider" /></li>
+
+  {/* Existing Options */}
+  <li className="dropdown-item">👤 My Profile</li>
+  <li className="dropdown-item">🔒 Logout</li>
+  <li className="dropdown-item">⚙️ Settings</li>
+</ul>
+
+    </li>
+            {/* Notifications Dropdown */}
+            <li className="nav-item dropdown mx-2">
               <button
-                type="button"
-                className="btn btn-light border-0"
-                data-bs-toggle="popover"
-                data-bs-placement="bottom"
-                title="Notifications"
-                data-bs-content="<ul class='list-unstyled mb-0'><li>🔔 New message received</li><li>📦 Order shipped</li></ul>"
+                className="btn btn-light border-0 dropdown-toggle"
+                id="notificationsDropdown"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
               >
                 <CIcon icon={cilBell} size="lg" />
+               
               </button>
+
+              
+              <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="notificationsDropdown">
+                <li className="dropdown-item">🔔 New message received</li>
+                <li className="dropdown-item">📦 Order shipped</li>
+              </ul>
             </li>
 
-            {/* Settings Icon */}
-            <li className="nav-item mx-2">
+            {/* Settings Dropdown */}
+            <li className="nav-item dropdown mx-2">
               <button
-                type="button"
-                className="btn btn-light border-0"
-                data-bs-toggle="popover"
-                data-bs-placement="bottom"
-                title="Settings"
-                data-bs-content="<ul class='list-unstyled mb-0'><li>⚙️ Profile Settings</li><li>🔒 Logout</li></ul>"
+                className="btn btn-light border-0 dropdown-toggle"
+                id="settingsDropdown"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
               >
                 <CIcon icon={cilSettings} size="lg" />
               </button>
+              <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="settingsDropdown">
+                <li className="dropdown-item">⚙️ Profile Settings</li>
+                <li className="dropdown-item">🔒 Logout</li>
+              </ul>
             </li>
           </ul>
         </div>
