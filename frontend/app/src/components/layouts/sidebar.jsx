@@ -15,9 +15,12 @@ import {
 import CIcon from '@coreui/icons-react'
 import {
   cilCloudDownload,
-  cilLayers,
+  cilHome,
   cilPuzzle,
-  cilSpeedometer
+  cilMagnifyingGlass,
+  cilEnvelopeOpen,
+  cilStorage,
+  cilAddressBook
 } from '@coreui/icons'
 
 const Sidebar = () => {
@@ -31,7 +34,7 @@ const Sidebar = () => {
     >
       {/* Sidebar Header */}
       <CSidebarHeader className="border-bottom">
-        <CSidebarBrand>CoreUI</CSidebarBrand>
+        <CSidebarBrand>VCS</CSidebarBrand>
       </CSidebarHeader>
 
       {/* Navigation */}
@@ -39,13 +42,13 @@ const Sidebar = () => {
         <CNavTitle>Navigation</CNavTitle>
 
         <CNavItem href="#">
-          <CIcon customClassName="nav-icon" icon={cilSpeedometer} />
+          <CIcon customClassName="nav-icon" icon={cilHome} />
           Dashboard
         </CNavItem>
 
         <CNavItem href="#">
-          <CIcon customClassName="nav-icon" icon={cilSpeedometer} />
-          With badge
+          <CIcon customClassName="nav-icon"  icon={cilEnvelopeOpen} />
+          VC Request
           <CBadge color="primary ms-auto">NEW</CBadge>
         </CNavItem>
 
@@ -53,33 +56,41 @@ const Sidebar = () => {
           toggler={
             <>
               <CIcon customClassName="nav-icon" icon={cilPuzzle} />
-              Dropdown
+              Accounts
             </>
           }
         >
           <CNavItem href="#">
             <span className="nav-icon">
-              <span className="nav-icon-bullet"></span>
+              <span className="nav-icon-bullet">
+              </span>
             </span>
-            Dropdown Item 1
+            
+             Users
           </CNavItem>
           <CNavItem href="#">
             <span className="nav-icon">
               <span className="nav-icon-bullet"></span>
             </span>
-            Dropdown Item 2
+            Admins/Staff
           </CNavItem>
         </CNavGroup>
 
         <CNavItem href="#">
-          <CIcon customClassName="nav-icon" icon={cilCloudDownload} />
-          Download CoreUI
+          <CIcon customClassName="nav-icon"  icon={cilStorage} />
+          Key Vaults
+        </CNavItem>
+        <CNavItem href="#">
+          <CIcon customClassName="nav-icon"  icon={cilAddressBook} />
+         BlockChain Explorer
         </CNavItem>
 
         <CNavItem href="#">
-          <CIcon customClassName="nav-icon" icon={cilLayers} />
-          Try CoreUI PRO
+          <CIcon customClassName="nav-icon" icon={cilMagnifyingGlass}/>
+          About
         </CNavItem>
+
+
       </CSidebarNav>
 
       {/* Footer with Toggler */}
