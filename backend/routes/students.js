@@ -23,6 +23,23 @@ router.get("/passing", async (req, res) => {
   }
 });
 
+// ✅ Route for TOR by student ID
+// routes/students.js
+router.get("/:id/tor", async (req, res) => {
+  try {
+    const student = await Student.findById(req.params.id);
+
+    if (!student) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    res.json(student.subjects || []);  // ✅ return subjects as TOR
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch TOR" });
+  }
+});
+
+
 // ✅ Route for searching all students (not just passing)
 router.get("/search", async (req, res) => {
   try {

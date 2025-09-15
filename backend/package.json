@@ -4,5 +4,9 @@
     "express": "^5.1.0",
     "mongoose": "^8.18.1",
     "xlsx": "^0.18.5"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   }
 }
