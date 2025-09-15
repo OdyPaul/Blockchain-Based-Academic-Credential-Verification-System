@@ -61,4 +61,17 @@ router.get("/search", async (req, res) => {
   }
 });
 
+// ✅ Route for getting a single student (used as VC JSON)
+router.get("/:id", async (req, res) => {
+  try {
+    const student = await Student.findById(req.params.id);
+    if (!student) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+    res.json(student); // return full student object
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch student" });
+  }
+});
+
 module.exports = router;

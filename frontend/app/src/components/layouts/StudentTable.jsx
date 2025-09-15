@@ -4,15 +4,30 @@ import { FaTimes, FaCog, FaEye, FaSearch } from "react-icons/fa";
 import "./css/table.css";
 import Spinner from "./Spinner";
 
+// 🆕 Import your modal components
+import ConfirmModal from "./modals/ConfirmModal";
+import TorModal from "./modals/TorModal";
+import VcModal from "./modals/VcModal";
+
 function StudentTable() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+
+  // Modals
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [tor, setTor] = useState([]); // TOR data
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showTORModal, setShowTORModal] = useState(false);
+  const [showVCModal, setShowVCModal] = useState(false);
+
+  // TOR
+  const [tor, setTor] = useState([]);
   const [torLoading, setTorLoading] = useState(false);
+
+  // VC
+  const [vc, setVc] = useState(null);
+  const [vcLoading, setVcLoading] = useState(false);
 
   useEffect(() => {
     fetchPassingStudents();
@@ -52,14 +67,21 @@ function StudentTable() {
       });
   };
 
-  const handleViewTOR = (student) => {
+  // 🔹 Show confirmation modal
+  const handleConfirmView = (student) => {
     setSelectedStudent(student);
-    setShowModal(true);
+    setShowConfirmModal(true);
+  };
+
+  // 🔹 Load TOR
+  const handleViewTOR = () => {
+    setShowConfirmModal(false);
+    setShowTORModal(true);
     setTor([]);
     setTorLoading(true);
 
     axios
-      .get(`http://localhost:5000/api/students/${student._id}/tor`)
+      .get(`http://localhost:5000/api/students/${selectedStudent._id}/tor`)
       .then((res) => {
         setTor(res.data);
         setTorLoading(false);
@@ -67,6 +89,25 @@ function StudentTable() {
       .catch(() => {
         setTor([]);
         setTorLoading(false);
+      });
+  };
+
+  // 🔹 Load VC
+  const handleViewVC = () => {
+    setShowConfirmModal(false);
+    setShowVCModal(true);
+    setVc(null);
+    setVcLoading(true);
+
+    axios
+      .get(`http://localhost:5000/api/students/${selectedStudent._id}`)
+      .then((res) => {
+        setVc(res.data); // student data as VC JSON
+        setVcLoading(false);
+      })
+      .catch(() => {
+        setVc(null);
+        setVcLoading(false);
       });
   };
 
@@ -94,42 +135,39 @@ function StudentTable() {
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                       />
-                      <button type="submit" className="btn btn-primary d-flex align-items-center">
+                      <button
+                        type="submit"
+                        className="btn btn-primary d-flex align-items-center"
+                      >
                         <FaSearch className="me-1" /> Search
                       </button>
                     </form>
 
+                    {/* 📊 Students Table */}
                     <div className="table-responsive">
                       <table className="table table-borderless mb-0">
                         <thead>
                           <tr>
-                            <th scope="col">
-                              <div className="form-check">
-                                <input
-                                  className="form-check-input"
-                                  type="checkbox"
-                                />
-                              </div>
-                            </th>
-                            <th scope="col">#</th>
-                            <th scope="col">Student Number</th>
-                            <th scope="col">Name</th>
-                            <th scope="col">Program</th>
-                            <th scope="col">GWA</th>
-                            <th scope="col">Action</th>
+                            <th></th>
+                            <th>#</th>
+                            <th>Student Number</th>
+                            <th>Name</th>
+                            <th>Program</th>
+                            <th>GWA</th>
+                            <th>Action</th>
                           </tr>
                         </thead>
                         <tbody>
                           {students.map((stu, index) => (
                             <tr key={stu._id}>
-                              <th scope="row">
+                              <td>
                                 <div className="form-check">
                                   <input
                                     className="form-check-input"
                                     type="checkbox"
                                   />
                                 </div>
-                              </th>
+                              </td>
                               <td>{index + 1}</td>
                               <td>{stu.studentNumber}</td>
                               <td>{stu.fullName}</td>
@@ -139,7 +177,7 @@ function StudentTable() {
                                 <button
                                   type="button"
                                   className="btn btn-info btn-sm px-3 me-2"
-                                  onClick={() => handleViewTOR(stu)}
+                                  onClick={() => handleConfirmView(stu)}
                                 >
                                   <FaEye />
                                 </button>
@@ -170,75 +208,30 @@ function StudentTable() {
         </div>
       </div>
 
-      {/* 📄 TOR Modal */}
-      {selectedStudent && (
-      <div
-        className={`modal fade ${showModal ? "show d-block" : ""}`}
-        tabIndex="-1"
-        onClick={() => setShowModal(false)} // 👉 Close when clicking backdrop
-      >
-        <div
-          className="modal-dialog modal-xl modal-dialog-centered"
-          onClick={(e) => e.stopPropagation()} // 👉 Prevent close when clicking inside modal
-        >
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">
-                  Transcript of Records - {selectedStudent.fullName}
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setShowModal(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                {torLoading ? (
-                  <Spinner />
-                ) : tor.length > 0 ? (
-                  <table className="table table-striped">
-                    <thead>
-                      <tr>
-                        <th>Subject Code</th>
-                        <th>Description</th>
-                        <th>Final Grade</th>
-                        <th>Units</th>
-                        <th>Remarks</th>
-                        <th>Year Level</th>
-                        <th>Semester</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {tor.map((subject, idx) => (
-                        <tr key={idx}>
-                          <td>{subject.subjectCode}</td>
-                          <td>{subject.subjectDescription}</td>
-                          <td>{subject.finalGrade}</td>
-                          <td>{subject.units}</td>
-                          <td>{subject.remarks}</td>
-                          <td>{subject.yearLevel}</td>
-                          <td>{subject.semester}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <p>No TOR data available.</p>
-                )}
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowModal(false)}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ⚡ Modals */}
+      <ConfirmModal
+        show={showConfirmModal}
+        student={selectedStudent}
+        onClose={() => setShowConfirmModal(false)}
+        onViewVC={handleViewVC}
+        onViewTOR={handleViewTOR}
+      />
+
+      <TorModal
+        show={showTORModal}
+        student={selectedStudent}
+        tor={tor}
+        loading={torLoading}
+        onClose={() => setShowTORModal(false)}
+      />
+
+      <VcModal
+        show={showVCModal}
+        student={selectedStudent}
+        vc={vc}
+        loading={vcLoading}
+        onClose={() => setShowVCModal(false)}
+      />
     </section>
   );
 }
