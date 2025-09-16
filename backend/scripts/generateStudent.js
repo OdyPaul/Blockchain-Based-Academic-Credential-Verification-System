@@ -11,44 +11,42 @@ function getRandomGrade() {
 function getRandomName() {
   const firstNames = ["Juan", "Maria", "Jose", "Ana", "Pedro", "Liza", "Mark", "Karla", "Paulo", "Ella"];
   const lastNames = ["Santos", "Reyes", "Cruz", "Gonzales", "Torres", "Flores", "Ramos", "Bautista", "Mendoza", "Garcia"];
-  return `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
+  return `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${
+    lastNames[Math.floor(Math.random() * lastNames.length)]
+  }`;
 }
 
-// Flatten subjects supporting both structure and legacy flat 'subjects'
+// Flatten curriculum subjects (works for both structure + flat subjects)
+// Flatten curriculum subjects (works for structured JSON)
 function flattenSubjects(curriculum) {
-  const out = [];
+  const subjects = [];
+
   if (curriculum.structure && typeof curriculum.structure === "object") {
     for (const year of Object.keys(curriculum.structure)) {
-      const sems = curriculum.structure[year];
-      for (const sem of Object.keys(sems)) {
-        const arr = sems[sem] || [];
+      const semesters = curriculum.structure[year];
+      for (const sem of Object.keys(semesters)) {
+        const arr = semesters[sem] || [];
         arr.forEach((s) => {
-          out.push({
-            subjectCode: s.subjectCode || "",
-            subjectDescription: s.subjectDescription || "",
-            units: s.units || 0,
-            yearLevel: year,
-            semester: sem,
-          });
+          if (s.code && s.code.trim() !== "") {
+            subjects.push({
+              subjectCode: s.code,
+              subjectDescription: s.title || "",
+              units: s.units || "",
+              yearLevel: year,
+              semester: sem,
+            });
+          }
         });
       }
     }
-  } else if (Array.isArray(curriculum.subjects)) {
-    curriculum.subjects.forEach((s) => {
-      out.push({
-        subjectCode: s.subjectCode || "",
-        subjectDescription: s.subjectDescription || "",
-        units: s.units || 0,
-        yearLevel: s.yearLevel || "",
-        semester: s.semester || "",
-      });
-    });
   }
-  return out;
+
+  return subjects;
 }
 
 async function createRandomStudent(curriculum, studentNumber) {
   const subjects = flattenSubjects(curriculum);
+
   if (!subjects.length) {
     console.warn(`⚠️ ${curriculum.program} has no subjects — skipping ${studentNumber}`);
     return;
