@@ -4,28 +4,36 @@ import { FaTimes, FaCog, FaEye, FaSearch } from "react-icons/fa";
 import "./css/table.css";
 import Spinner from "./Spinner";
 
-// 🆕 Import your modal components
 import ConfirmModal from "./modals/ConfirmModal";
 import TorModal from "./modals/TorModal";
 import VcModal from "./modals/VcModal";
+import UnselectConfirmModal from "./modals/UnselectConfirmModal";
+import CreateVCConfirmModal from "./modals/CreateVCConfirmModal";
 
 function StudentTable() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+  const [programs, setPrograms] = useState([]);
+
+  // Program filter
+  const [selectedProgram, setSelectedProgram] = useState("All");
+
+  // Row selection
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Modals
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showTORModal, setShowTORModal] = useState(false);
   const [showVCModal, setShowVCModal] = useState(false);
+  const [showVCConfirmModal, setShowVCConfirmModal] = useState(false);
 
-  // TOR
+  // TOR + VC
   const [tor, setTor] = useState([]);
   const [torLoading, setTorLoading] = useState(false);
-
-  // VC
   const [vc, setVc] = useState(null);
   const [vcLoading, setVcLoading] = useState(false);
 
@@ -33,19 +41,25 @@ function StudentTable() {
     fetchPassingStudents();
   }, []);
 
-  const fetchPassingStudents = () => {
-    setLoading(true);
-    axios
-      .get("http://localhost:5000/api/students/passing")
-      .then((res) => {
-        setStudents(res.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message || "Error fetching students");
-        setLoading(false);
-      });
-  };
+const fetchPassingStudents = () => {
+  setLoading(true);
+  axios
+    .get("http://localhost:5000/api/students/passing")
+    .then((res) => {
+      setStudents(res.data);
+
+      // ✅ Extract unique programs only once
+      const uniquePrograms = [...new Set(res.data.map((s) => s.program))];
+      setPrograms(uniquePrograms);
+
+      setLoading(false);
+    })
+    .catch((err) => {
+      setError(err.message || "Error fetching students");
+      setLoading(false);
+    });
+};
+
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -67,13 +81,40 @@ function StudentTable() {
       });
   };
 
-  // 🔹 Show confirmation modal
+  const handleApplyProgram = () => {
+    if (selectedProgram === "All") {
+      fetchPassingStudents();
+    } else {
+      setLoading(true);
+      axios
+        .get(`http://localhost:5000/api/students/search?q=${selectedProgram}`)
+        .then((res) => {
+          setStudents(res.data);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    }
+  };
+
+  const handleRowSelect = (id) => {
+    setSelectedRows((prev) =>
+      prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id]
+    );
+  };
+
+// Unselect all selected rows
+const handleUnselectSelected = () => {
+  setSelectedRows([]);  // just clear state
+  setShowDeleteModal(false);
+};
+
+  // Show confirmation modal
   const handleConfirmView = (student) => {
     setSelectedStudent(student);
     setShowConfirmModal(true);
   };
 
-  // 🔹 Load TOR
+  // Load TOR
   const handleViewTOR = () => {
     setShowConfirmModal(false);
     setShowTORModal(true);
@@ -92,7 +133,7 @@ function StudentTable() {
       });
   };
 
-  // 🔹 Load VC
+  // Load VC
   const handleViewVC = () => {
     setShowConfirmModal(false);
     setShowVCModal(true);
@@ -102,7 +143,7 @@ function StudentTable() {
     axios
       .get(`http://localhost:5000/api/students/${selectedStudent._id}`)
       .then((res) => {
-        setVc(res.data); // student data as VC JSON
+        setVc(res.data);
         setVcLoading(false);
       })
       .catch(() => {
@@ -110,6 +151,32 @@ function StudentTable() {
         setVcLoading(false);
       });
   };
+
+// Toggle select all rows
+const handleSelectAll = () => {
+  if (selectedRows.length === students.length) {
+    // if everything is already selected → clear
+    setSelectedRows([]);
+  } else {
+    // select all visible students
+    setSelectedRows(students.map((s) => s._id));
+  }
+};
+
+const handleCreateVC = async () => {
+  console.log("Creating VC for:", selectedRows); // debug
+  try {
+    await axios.post("http://localhost:5000/vc/bulk-issue", { studentIds: selectedRows });
+    alert("VCs signed and saved successfully!");
+    setShowVCConfirmModal(false);
+    setSelectedRows([]);
+  } catch (err) {
+    console.error(err);
+    alert("Failed to sign VCs");
+  }
+};
+
+
 
   if (loading) return <Spinner />;
   if (error) return <p className="text-danger">Error: {error}</p>;
@@ -126,7 +193,20 @@ function StudentTable() {
                   style={{ backgroundColor: "#f5f7fa" }}
                 >
                   <div className="card-body">
-                    {/* 🔎 Search Section */}
+                    <div className="d-flex mb-3">
+                <button
+                  type="button"
+                  className="btn btn-success me-3"
+                  disabled={selectedRows.length === 0}
+                  onClick={() => setShowVCConfirmModal(true)}   // ✅ open confirm modal
+                >
+                  Create VC
+                </button>
+
+                    {/* existing search + filters here */}
+                  </div>
+
+                    {/* 🔎 Search + Filters Section */}
                     <form onSubmit={handleSearch} className="d-flex mb-3">
                       <input
                         type="text"
@@ -135,11 +215,51 @@ function StudentTable() {
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                       />
+
                       <button
                         type="submit"
-                        className="btn btn-primary d-flex align-items-center"
+                        className="btn btn-primary d-flex align-items-center me-2"
                       >
                         <FaSearch className="me-1" /> Search
+                      </button>
+
+                      <select
+                        className="form-select me-2"
+                        value={selectedProgram}
+                        onChange={(e) => setSelectedProgram(e.target.value)}
+                      >
+                        <option value="All">All</option>
+                        {programs.map((prog) => (
+                          <option key={prog} value={prog}>
+                            {prog}
+                          </option>
+                        ))}
+                      </select>
+
+
+                      <button
+                        type="button"
+                        className="btn btn-secondary me-2"
+                        onClick={handleApplyProgram}
+                      >
+                        Apply
+                      </button>
+                      <button
+                      type="button"
+                      className="btn btn-outline-dark me-2"
+                      onClick={handleSelectAll}
+                    >
+                      ALL
+                    </button>
+
+                      <button
+                        type="button"
+                        className="btn btn-danger d-flex align-items-center"
+                        disabled={selectedRows.length === 0}
+                        onClick={() => setShowDeleteModal(true)}
+                      >
+                        <FaTimes className="me-1" />
+                        {selectedRows.length}
                       </button>
                     </form>
 
@@ -165,6 +285,8 @@ function StudentTable() {
                                   <input
                                     className="form-check-input"
                                     type="checkbox"
+                                    checked={selectedRows.includes(stu._id)}
+                                    onChange={() => handleRowSelect(stu._id)}
                                   />
                                 </div>
                               </td>
@@ -232,6 +354,21 @@ function StudentTable() {
         loading={vcLoading}
         onClose={() => setShowVCModal(false)}
       />
+
+      <UnselectConfirmModal
+        show={showDeleteModal}
+        count={selectedRows.length}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleUnselectSelected}
+      />
+      <CreateVCConfirmModal
+      show={showVCConfirmModal}
+      count={selectedRows.length}
+      onClose={() => setShowVCConfirmModal(false)}
+      onConfirm={handleCreateVC}
+    />
+
+
     </section>
   );
 }
